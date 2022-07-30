@@ -5,7 +5,6 @@ import time
 from datetime import datetime
 import secrets
 import traceback
-
 from cryptography import x509
 from cryptography.exceptions import InvalidSignature
 from cryptography.fernet import Fernet
