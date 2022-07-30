@@ -41,6 +41,9 @@ def main(args):
         s.connect((server_address, port))
         print("Connected")
         s.sendall(convert_int_to_bytes(3))
+        auth_msg = "authMsg"
+        s.sendall(convert_int_to_bytes(len(auth_msg)))
+        s.sendall(auth_msg)
 
         while True:
             filename = input(

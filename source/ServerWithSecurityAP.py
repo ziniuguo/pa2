@@ -48,6 +48,17 @@ def main(args):
     address = args[1] if len(args) > 1 else "localhost"
 
     try:
+        with open("auth/server_private_key.pem", mode="r", encoding="utf8") as key_file:
+            private_key = serialization.load_pem_private_key(
+                bytes(key_file.read(), encoding="utf8"), password=None
+            )
+        public_key = private_key.public_key()
+    except Exception as e:
+        print(e)
+
+    # Use private_key or public_key for encryption or decryption from now onwards
+
+    try:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.bind((address, port))
             s.listen()
@@ -93,7 +104,29 @@ def main(args):
                             s.close()
                             break
                         case 3:
-
+                            auth_msg_len = convert_bytes_to_int(
+                                read_bytes(client_socket, 8)
+                            )
+                            received_auth_msg = read_bytes(
+                                client_socket, auth_msg_len
+                            ).decode("utf-8")
+                            message = bytes(received_auth_msg, encoding="utf-8")
+                            signed_message = private_key.sign(
+                                message,
+                                padding.PSS(
+                                    mgf=padding.MGF1(hashes.SHA256()),
+                                    salt_length=padding.PSS.MAX_LENGTH,
+                                ),
+                                hashes.SHA256()
+                            )
+                            '''
+                            M1 from server: size of incoming M2 in bytes
+                            M2 from server: signed authentication message
+                            another M1 from server: size of incoming M2 in bytes (this is server_signed.crt)
+                            another M2 from server: server_signed.crt
+                            '''
+                            s.sendall(convert_int_to_bytes(len(signed_message)))
+                            s.sendall(signed_message)
                             break
 
     except Exception as e:
