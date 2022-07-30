@@ -109,10 +109,9 @@ def main(args):
                             )
                             received_auth_msg = read_bytes(
                                 client_socket, auth_msg_len
-                            ).decode("utf-8")
-                            message = bytes(received_auth_msg, encoding="utf-8")
+                            )
                             signed_message = private_key.sign(
-                                message,
+                                received_auth_msg,
                                 padding.PSS(
                                     mgf=padding.MGF1(hashes.SHA256()),
                                     salt_length=padding.PSS.MAX_LENGTH,
@@ -125,8 +124,17 @@ def main(args):
                             another M1 from server: size of incoming M2 in bytes (this is server_signed.crt)
                             another M2 from server: server_signed.crt
                             '''
+                            # Reading Certificate as byte without loading it
+                            with open(
+                                    "auth/server_signed.crt", "rb"
+                            ) as server_crt_f:
+                                server_crt_raw = server_crt_f.read()
+
+                            # how to send?
                             s.sendall(convert_int_to_bytes(len(signed_message)))
                             s.sendall(signed_message)
+                            s.sendall(convert_int_to_bytes(len(server_crt_raw)))
+                            s.sendall(server_crt_raw)
                             break
 
     except Exception as e:
