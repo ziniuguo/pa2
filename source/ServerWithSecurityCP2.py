@@ -86,11 +86,21 @@ def main(args):
                             )
                             encrypted_file = read_bytes(client_socket, encrypted_file_len)
                             file = session_key.decrypt(encrypted_file)
-                            filename = "recv_" + filename.split("/")[-1]
 
+                            filename_enc = "enc_recv_" + filename.split("/")[-1]
+                            # Write the file with 'enc_recv_' prefix
+                            with open(
+                                    f"recv_files_enc/{filename_enc}", mode="wb"
+                            ) as fp:
+                                fp.write(encrypted_file)
+                            print(
+                                f"Finished receiving raw file"
+                            )
+
+                            filename_dec = "recv_" + filename.split("/")[-1]
                             # Write the file with 'recv_' prefix
                             with open(
-                                    f"recv_files/{filename}", mode="wb"
+                                    f"recv_files/{filename_dec}", mode="wb"
                             ) as fp:
                                 fp.write(file)
                             print(

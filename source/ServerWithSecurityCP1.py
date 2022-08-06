@@ -85,11 +85,13 @@ def main(args):
                                 read_bytes(client_socket, 8)
                             )
                             file_data_list = []
+                            raw_file_data_list = []
                             for i in range(list_len):
                                 file_len = convert_bytes_to_int(
                                     read_bytes(client_socket, 8)
                                 )
                                 file_data = read_bytes(client_socket, file_len)
+                                raw_file_data_list.append(file_data)
                                 decrypted_file_data = private_key.decrypt(
                                     file_data,  # in bytes
                                     padding.OAEP(  # padding should match whatever used during encryption
@@ -100,13 +102,20 @@ def main(args):
                                 )
                                 file_data_list.append(decrypted_file_data)
 
-                            filename = "recv_" + filename.split("/")[-1]
-                            print("96")
+                            filename_enc = "enc_recv_" + filename.split("/")[-1]
+                            # Write the file with 'enc_recv_' prefix
+                            with open(
+                                    f"recv_files_enc/{filename_enc}", mode="wb"
+                            ) as fp_raw:
+                                fp_raw.write(b''.join(raw_file_data_list))
+                            print(
+                                f"Finished receiving raw enc file"
+                            )
 
-                            print("105")
+                            filename_dec = "recv_" + filename.split("/")[-1]
                             # Write the file with 'recv_' prefix
                             with open(
-                                f"recv_files/{filename}", mode="wb"
+                                f"recv_files/{filename_dec}", mode="wb"
                             ) as fp:
                                 fp.write(b''.join(file_data_list))
                             print(

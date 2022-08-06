@@ -164,6 +164,7 @@ def main(args):
 
                 file_list = [data[i: i + 62] for i in range(0, len(data), 62)]
                 s.sendall(convert_int_to_bytes(len(file_list)))
+                encrypted_file_list = []
                 for i in file_list:
                     encrypted_file = server_public_key.encrypt(
                         i,
@@ -175,6 +176,16 @@ def main(args):
                     )
                     s.sendall(convert_int_to_bytes(len(encrypted_file)))
                     s.sendall(encrypted_file)
+                    encrypted_file_list.append(encrypted_file)
+
+                filename = "enc_" + filename.split("/")[-1]
+                with open(
+                        f"send_files_enc/{filename}", mode="wb"
+                ) as fp:
+                    fp.write(b''.join(encrypted_file_list))
+                print(
+                    "Saved before sent."
+                )
 
         # Close the connection
         s.sendall(convert_int_to_bytes(2))
