@@ -135,7 +135,6 @@ def main(args):
                             client_socket.sendall(signed_message)
                             client_socket.sendall(convert_int_to_bytes(len(server_crt_raw)))
                             client_socket.sendall(server_crt_raw)
-                            break
 
     except Exception as e:
         print(e)
