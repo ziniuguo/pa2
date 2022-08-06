@@ -28,6 +28,22 @@ def convert_bytes_to_int(xbytes):
     return int.from_bytes(xbytes, "big")
 
 
+def read_bytes(socket, length):
+    """
+    Reads the specified length of bytes from the given socket and returns a bytestring
+    """
+    buffer = []
+    bytes_received = 0
+    while bytes_received < length:
+        data = socket.recv(min(length - bytes_received, 1024))
+        if not data:
+            raise Exception("Socket connection broken")
+        buffer.append(data)
+        bytes_received += len(data)
+
+    return b"".join(buffer)
+
+
 def main(args):
     port = int(args[0]) if len(args) > 0 else 4321
     server_address = args[1] if len(args) > 1 else "localhost"
@@ -55,8 +71,17 @@ def main(args):
         # 1. Verify the signed certificate sent by the Server using ca’s public key
         # Kca+ obtained from cacsertificate.crt file
         # reading cacsertificate
-        f_cac = open("auth/cacsertificate.crt", "rb")
-        ca_cert_raw = f_cac.read()
+
+        signed_message_len = convert_bytes_to_int(
+            read_bytes(s, 8)
+        )
+        signed_message = read_bytes(
+            s, signed_message_len
+        )
+
+        cert_length = convert_bytes_to_int(read_bytes(s, 8))
+        ca_cert_raw = read_bytes(s, cert_length)
+
         ca_cert = x509.load_pem_x509_certificate(
             data=ca_cert_raw, backend=default_backend()
         )
@@ -82,7 +107,7 @@ def main(args):
         # Ks-{M} (using the verify method) to verify that
         # M is the same message sent by the client in the first place
         server_public_key.verify(
-            auth_msg,  # here should be signed_message from client
+            signed_message,  # here should be signed_message from client
             auth_msg,
             padding.PSS(
                 mgf=padding.MGF1(hashes.SHA256()),
