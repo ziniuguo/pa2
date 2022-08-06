@@ -132,10 +132,10 @@ def main(args):
         '''
         # to be done
         if not verify_state:
-            s.sendall(convert_int_to_bytes(3))
+            s.sendall(convert_int_to_bytes(2))
             print("Closing connection... Because auth failed.")
 
-        while AssertionError:
+        while verify_state:
             filename = input(
                 "Enter a filename to send (enter -1 to exit):"
             ).strip()
